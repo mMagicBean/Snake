@@ -13,9 +13,6 @@
 
 
 typedef struct Grid {
-  //int x, y;
-  //char width[WIDTH];
-  //char height[HEIGHT];
   char tiles[HEIGHT][WIDTH];
   int size;
   
@@ -23,7 +20,6 @@ typedef struct Grid {
 
 
 typedef struct Snake {
-  //char pos[HEIGHT][WIDTH];
   int xpos;
   int ypos;
   
@@ -44,22 +40,17 @@ char swap_chars(char current, char new) {
  
 
 void create_grid(Grid* grid) {
-  // fill the grid with - symbols
   grid->size = sizeof(HEIGHT * WIDTH);
 
-  //printf("%d\n", grid->size);
   for (int i=0; i <= HEIGHT; i++) {
-    //grid->tiles[i][0] = '-';
-    
     for (int j=0; j <= WIDTH; j++) {
+
       grid->tiles[i][j] = '-';
     }
   }
 }
 
 
-//NOTE: i want to draw the grid seperately and
-//      use the snake to manipulate the tiles 
 void create_snake(Snake* snake) {
   snake->xpos = 0;
   snake->ypos = 0;
@@ -67,12 +58,8 @@ void create_snake(Snake* snake) {
   snake->sprite = 'o';
 }
 
-// this function might not be actually drawing a grid
-// the way i think it is 
 void draw_grid(Grid* grid) {
   for (int i=0; i <= HEIGHT; i++) {
-    //printf("%c", grid->tiles[i][0]);
-    
     for (int j=0; j <= WIDTH; j++) {
       printf("%c", grid->tiles[i][j]);
       
@@ -95,8 +82,6 @@ void update_snake(Snake* snake, Grid* grid) {
   
 }
 
-// NOTE: i need to sync the framerate and the movement on char swapping
-//       in order for this to work smoothly
 void mainloop(bool is_running) {
   while(is_running == true) {
     draw_grid(&grid);
