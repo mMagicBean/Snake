@@ -1,93 +1,33 @@
+#include "snake.h"
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <stdbool.h>
 #include <conio.h>
+#include <stdlib.h>
 #include <time.h>
-
-#define UNIX    1
-#define WINDOWS 2
-
-#define OS WINDOWS
-
-#define WIDTH 32
-#define HEIGHT 16
-
-#define KEYUP    72
-#define KEYDOWN  80
-#define KEYLEFT  75
-#define KEYRIGHT 77
-#define ESCAPE   27
+#include <unistd.h>
 
 
-typedef struct Grid {
-  char tiles[HEIGHT][WIDTH];
-  int size;
-  
-}Grid;
+#define ESCAPE 27
 
+int score = 3;
 
-typedef struct Snake {
-  int xpos;
-  int ypos;  
-  char sprite;  
+bool moving_right;
+bool moving_left;
+bool moving_up;
+bool moving_down;
 
-}Snake;
-
-
-Grid grid;
-Snake snake;
-
-void read_input(Grid* grid, Snake* snake) {
-  char c = getch();
-
-  switch(c) {
-  case ESCAPE:
-    exit(0);
-    break;
-    
-  case KEYUP:
-    grid->tiles[snake->ypos -= 1][snake->xpos] = 'o';
-    break;
-    
-  case KEYDOWN:
-    grid->tiles[snake->ypos += 1][snake->xpos] = 'o';
-    break;
-
-  case KEYLEFT:
-    grid->tiles[snake->ypos][snake->xpos -= 1] = 'o';
-    break;
-
-  case KEYRIGHT:
-    grid->tiles[snake->ypos][snake->xpos += 1] = 'o';
-    break;
-  }
+void init_snake(Snake* snake) {
+  snake->xpos = 10;
+  snake->ypos = 10;
 }
 
-
-char swap_chars(char current, char new) {
-  if (current == '-') {
-    return new;
-  }
-}
-
-
-void create_grid(Grid* grid) {
-  grid->size = sizeof(HEIGHT * WIDTH);
-
+void init_grid(Grid* grid) {
   for (int i=0; i <= HEIGHT; i++) {
     for (int j=0; j <= WIDTH; j++) {
       grid->tiles[i][j] = '-';
     }
   }
-}
-
-
-void create_snake(Snake* snake) {
-  snake->xpos = 0;
-  snake->ypos = 0;
-
-  snake->sprite = 'o';
 }
 
 
@@ -103,101 +43,88 @@ void draw_grid(Grid* grid) {
   }
 }
 
-  
-/*
-void update_grid(Grid* grid, Snake* snake) {
-  int score = 0;
-  time_t t;
-  srand((unsigned) time(&t));
+int handle_keys(Grid* grid, Snake* snake) {
+  char c;
 
-  //int random_ypos = rand() % HEIGHT;
-  //int random_xpos = rand() % WIDTH;
-  
-  int random_ypos = 0;
-  int random_xpos = 8;
-  
-  grid->tiles[random_ypos][random_xpos] = '%';
+  if (kbhit()) {
+    
+    c = getch();
 
-  // check if snake overlaps with apple
-  if (grid->tiles[snake->ypos][snake->xpos] == grid->tiles[random_ypos][random_xpos]) {
-    score++;
-    //grid->tiles[random_ypos][random_xpos] = '-';
-    //grid->tiles[snake->ypos][snake->xpos - score] == 'o';
+    switch (c) {
+      
+    case 'w':
+      moving_up = true;
+      moving_down = false;
+      moving_right = false;
+      moving_left = false;
+      break;
+      
+    case 'a':
+      moving_left = true;
+      moving_up = false;
+      moving_down = false;
+      moving_right = false;
+      break;
+
+    case 's':
+      moving_down = true;
+      moving_up = false;
+      moving_right = false;
+      moving_left = false;
+      break;
+      
+    case 'd':
+      moving_right = true;
+      moving_down = false;
+      moving_up = false;
+      moving_left = false;
+
+      break;
+      
+    case ESCAPE:
+      exit(0);
+      break;
+      
+    }
   }
+  
+  if (moving_up) {
+    grid->tiles[snake->ypos--][snake->xpos] = 'o';
+  }
+  
+  if (moving_right) {
+    grid->tiles[snake->ypos][snake->xpos++] = 'o';
+  }
+    
+  if (moving_left) {
+    grid->tiles[snake->ypos][snake->xpos--] = 'o';
+  }
+  
+  if (moving_down) {
+    grid->tiles[snake->ypos++][snake->xpos] = 'o';
+  }
+
+  printf("value of c = %c\n", c);  
+  
+  printf("getch() = %c\n", c);
+  printf("score = %d\n", score);
+  
+  return 0;
 }
-*/
-
-
-void update_snake(Grid* grid, Snake* snake) {
-  int score = 1;
-  
-  //time_t t;
-  //srand(time(NULL));
-  
-  //int random_ypos = rand() % HEIGHT;
-  //int random_xpos = rand() % WIDTH;
-  
-  int random_ypos = 2;
-  int random_xpos = 8;
-  
-  grid->tiles[random_ypos][random_xpos] = '%';
-
-  // check if snake overlaps with apple
-  if (grid->tiles[snake->ypos][snake->xpos] == grid->tiles[random_ypos][random_xpos]) {
-    score++;
-    grid->tiles[random_ypos][random_xpos] = '-';
-    grid->tiles[snake->ypos][snake->xpos - score] == 'o';
-  }
-
-  //grid->tiles[snake->ypos][snake->xpos += 1] = 'o';
-  
-  // overwrite leftover snake symbol from left to right
-  if (grid->tiles[snake->ypos][snake->xpos - score] == snake->sprite) {
-    grid->tiles[snake->ypos][snake->xpos - score] = '-';
-  }
-
-  // overwrite leftover snake symbol from up to bottom
-  if (grid->tiles[snake->ypos - score][snake->xpos] == snake->sprite) {
-    grid->tiles[snake->ypos - score][snake->xpos] = '-';
-  }
-
-  // overwrite leftover snake symbol from right to left
-  if (grid->tiles[snake->ypos][snake->xpos + score] == snake->sprite) {
-    grid->tiles[snake->ypos][snake->xpos + score] = '-';
-  }
-  
-  // overwrite leftover snake symbol from bottom to up
-  if (grid->tiles[snake->ypos + score][snake->xpos] == snake->sprite) {
-    grid->tiles[snake->ypos + score][snake->xpos] = '-';
-  }
-		  
-  if (snake->ypos > HEIGHT + 1 || snake->ypos < 0) {
-    printf("Game over\n");
-    exit(0);
-  }
-
-  if (snake->xpos > WIDTH + 1 || snake->xpos < 0 ) {
-    printf("Game over\n");
-    exit(0);
-  }
-}
-
-
-void mainloop(bool is_running) {
-  snake.xpos = 0;
-  snake.ypos = 0;
-  
-  while(is_running == true) {
-    draw_grid(&grid);
-    read_input(&grid, &snake);
-    update_snake(&grid, &snake);
-    system("cls");
-  }
-}
-
 
 int main() {
-  create_grid(&grid);
-  create_snake(&snake);
-  mainloop(true);
+  Grid grid;
+  Snake snake;
+
+  init_snake(&snake);
+  init_grid(&grid);
+
+  for (;;) {
+    handle_keys(&grid, &snake);
+    draw_grid(&grid);
+        
+    system("cls");
+  }
+
+  return 0;
 }
