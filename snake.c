@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <windows.h>
 
 #define MAX_LENGTH 512
 
@@ -17,9 +18,9 @@ bool moving_up;
 bool moving_down;
 
 
-
 void init_snake(Snake snake[]) {
   memset(snake, 0, MAX_LENGTH);
+  
   snake[0].x = 10;
   snake[0].y = 10;
 }
@@ -55,17 +56,34 @@ void draw_grid(Grid* grid) {
 
 int move_snake(Grid* grid, Snake snake[]) {  
   char c;
-    
-  static int score = 0;
-
-  if (snake[0].y == 2 && snake[0].x == 6) {
-    score += 1;
-  }
-
-
-  get_prev_pos(snake, score);
   
+  static int score = 1;
+  
+  static bool fruit_eaten = false;
+  
+  int prevx, prevy;
 
+  prevx = snake[0].x;
+  prevy = snake[0].y;
+  
+  int prev_x2, prev_y2;
+
+  for (int i=1; i < score; i++) {
+    prev_x2 = snake[i].x;
+    prev_y2 = snake[i].y;
+
+    snake[i].x = prevx;
+    snake[i].y = prevy;
+
+    prevx = prev_x2;
+    prevy = prev_y2;
+  }
+  
+  if (snake[HEAD].x == 6 && snake[HEAD].y == 2) {    
+    score++;
+    fruit_eaten = true;
+  }
+ 
   if (kbhit()) {
     
     c = getch();
@@ -107,57 +125,37 @@ int move_snake(Grid* grid, Snake snake[]) {
   }
   
   if (moving_up) {
-    grid->tiles[snake[0].y--][snake[0].x] = 'o';
+    grid->tiles[snake[HEAD].y--][snake[HEAD].x] = 'o';
   }
   
   if (moving_right) {
-    grid->tiles[snake[0].y][snake[0].x++] = 'o';
+    grid->tiles[snake[HEAD].y][snake[HEAD].x++] = 'o';
   }
   
   if (moving_left) {
-    grid->tiles[snake[0].y][snake[0].x--] = 'o';
+    grid->tiles[snake[HEAD].y][snake[HEAD].x--] = 'o';
   }
   
   if (moving_down) {
-    grid->tiles[snake[0].y++][snake[0].x] = 'o';
-  }
-
-  if (score > 0) {
-    snake[score] = get_prev_pos(snake, score);
+    grid->tiles[snake[HEAD].y++][snake[HEAD].x] = 'o';
   }
   
   draw_snake_body(grid, snake, score);
-  
-  printf("score = %d\n", score);
 
-  printf("snake[0] = %d, %d\n", snake[0].x, snake[0].y);
-  printf("snake[1] = %d, %d\n", snake[1].x, snake[1].y);
-  printf("snake[2] = %d, %d\n", snake[2].x, snake[2].y);
-  printf("snake[3] = %d, %d\n", snake[3].x, snake[3].y);
-  printf("snake[4] = %d, %d\n", snake[4].x, snake[4].y);
+  printf("score = %d\n", score);
   
   return 0;
 }
 
-Snake get_prev_pos(Snake snake[], int score) {
-  static Snake prev_pos;
-
-  if (score <= 0) {
-    prev_pos = snake[score];
-    return prev_pos;
-  }
-
-  prev_pos = snake[score - 1];
-  return prev_pos;
-}
-
 void draw_snake_body(Grid* grid, Snake snake[], int score) {
-  for(int i=0; i < score; i++) {
+  for(int i=0; i < score-1; i++) {
     grid->tiles[snake[i].y][snake[i].x] = 'o'; 
   }
 }
 
 void update_grid(Grid* grid) {
+  int rand_x, rand_y;
+  
   // refresh the screen
   for(int i=1; i < HEIGHT; i++) {
     for(int j=1; j < WIDTH; j++) {
@@ -181,12 +179,14 @@ void check_collision(Snake snake[]) {
 int main() {
   Grid grid;    
   Snake snake[MAX_LENGTH];
-     
+  
+  COORD coord;
+  coord.X = 0;
+  coord.Y = 0;
+  
   init_snake(snake);
   init_grid(&grid);
 
-  system("cls");
-  
   printf("    Y\n");
   printf("  .-^-.\n");
   printf(" /     \\      .- ~ ~ -.\n");
@@ -225,13 +225,14 @@ int main() {
 
   if (c == 'y') {
     
-    for (;;) {    
+    for (;;) {
+      //SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
       move_snake(&grid, snake);
       draw_grid(&grid);    
       update_grid(&grid);
       check_collision(snake);
       system("cls");
-      printf("\e[?25l"); // hide cursor
+      //printf("\e[?25l"); // hide cursor
     }
   }
   
