@@ -16,6 +16,7 @@ bool is_moving_down = false;
 
 int SCORE;
 
+
 enum DIR {
   UP = 17,
   DOWN = 18,
@@ -33,8 +34,8 @@ void create_grid(Grid* grid) {
       //borders
       grid->tiles[i][0] = '+'; // left
       grid->tiles[0][j] = '+'; // top
-      grid->tiles[i][GRID_WIDTH - 1] = '+';
-      grid->tiles[GRID_HEIGHT - 1][j] = '+';
+      grid->tiles[i][GRID_WIDTH - 1] = '+'; // right
+      grid->tiles[GRID_HEIGHT - 1][j] = '+'; // bottom
     }
   }
 }
@@ -54,12 +55,11 @@ void draw_grid(Grid* grid) {
 void update_grid(Grid* grid) {
   for (int i = 1; i < GRID_HEIGHT - 1; i++) {
     for (int j = 1; j < GRID_WIDTH - 1; j++) {
-      /*
-      if (grid->tiles[i][j] == '@') {
-	break;
-      }
-      */
       
+      if (grid->tiles[i][j] == '@') {
+	continue;
+      }
+            
       grid->tiles[i][j] = ' ';
     }
   }
@@ -69,15 +69,15 @@ void create_apple(Apple* apple) {
   srand((unsigned)time(NULL));
 
   int lower = 4;
-
-  int rand_xpos = (rand() % (GRID_WIDTH - lower + 1)) + lower;
-  int rand_ypos = (rand() % (GRID_HEIGHT - lower + 1)) + lower;
+  
+  int max_width  = GRID_WIDTH - 2;
+  int max_height = GRID_HEIGHT - 2;
+  
+  int rand_xpos = (rand() % (max_width - lower + 1)) + lower;
+  int rand_ypos = (rand() % (max_height - lower + 1)) + lower;
 
   apple->x = rand_xpos;
   apple->y = rand_ypos;
-
-  printf("xpos = %d\n", apple->x);
-  printf("ypos = %d\n", apple->y);
 }
 
 void draw_apple(Apple* apple, Grid* grid) {
@@ -92,12 +92,13 @@ void create_snake(Snake snake[]) {
 }
 
 void draw_snake(Snake snake[], Grid* grid) {
-  grid->tiles[snake[0].y][snake[0].x] = 'O';
-
-  // draw snake body
-  for (int i = 1; i < SCORE - 1; i++) {
+  // snake body
+  for (int i = 1; i < SCORE; i++) {
     grid->tiles[snake[i].y][snake[i].x] = 'o';
   }
+
+  // snake head
+  grid->tiles[snake[0].y][snake[0].x] = 'O';
 }
 
 void move_snake(Snake snake[], Apple* apple, Grid* grid) {
@@ -179,6 +180,7 @@ void move_snake(Snake snake[], Apple* apple, Grid* grid) {
 }
 
 void detect_collisions(Snake snake[], Apple* apple, Grid* grid) {
+  printf("Score: %d\n", SCORE);
   // snake & grid collision
   if (snake[0].x > GRID_WIDTH || snake[0].x < 0) {
     system("cls");
@@ -202,8 +204,7 @@ void detect_collisions(Snake snake[], Apple* apple, Grid* grid) {
     apple->x = -1;
     apple->y = -1;
 
-    create_apple(apple);
-    //draw_apple(apple, grid);
+    create_apple(apple); 
     
     printf("\n");
     printf("collision detected!");
@@ -262,7 +263,7 @@ int main() {
 
   if (c == 'y' || c == 'Y') {
     system("cls");
-    
+        
     for (;;) {
       draw_grid(&grid);
       draw_apple(&apple, &grid);
