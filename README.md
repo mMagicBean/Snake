@@ -1,1 +1,2 @@
-![Capture](https://user-images.githubusercontent.com/50392507/171823521-07212ec1-09a7-40a6-9d5e-68ce74121b22.PNG)
+
+![snake](https://github.com/mMagicBean/Snake/assets/50392507/1f13f72c-96f7-429c-9ab4-2c652e05e7b2)
